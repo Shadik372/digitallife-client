@@ -16,7 +16,7 @@ export default function ProfilePage() {
   const [userLessons, setUserLessons] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     photoURL: ""
@@ -34,15 +34,27 @@ export default function ProfilePage() {
 
   const fetchUserLessons = async () => {
     try {
-      // Fetch all public lessons and filter for this user
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/lessons`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/lessons`, {
+        withCredentials: true 
+      });
+      
       if (res.data.success) {
-        const myPublicLessons = res.data.lessons.filter(
-          l => l.creatorId._id === session.user.id
-        );
+        // --- X-RAY LOGS: Let's see what is actually happening ---
+        console.log("My Logged-in User ID:", session?.user?.id);
+        console.log("Lessons returned from Database:", res.data.lessons);
+        // --------------------------------------------------------
+
+        const myPublicLessons = res.data.lessons.filter((l) => {
+          const lessonCreatorId = l.creatorId?._id || l.creatorId;
+          
+          // Force both to strings to guarantee a perfect match!
+          return String(lessonCreatorId) === String(session?.user?.id);
+        });
+        
         setUserLessons(myPublicLessons);
       }
     } catch (error) {
+      console.error("Lesson Fetch Error:", error); 
       toast.error("Failed to load your lessons.");
     } finally {
       setIsLoading(false);
@@ -74,12 +86,12 @@ export default function ProfilePage() {
 
       <Card className="p-6">
         <div className="flex flex-col md:flex-row gap-8 items-start">
-          
+
           {/* Display Info */}
           <div className="flex flex-col items-center gap-4 w-full md:w-1/3">
-            <img 
-              src={formData.photoURL || `https://ui-avatars.com/api/?name=${formData.name}&background=random`} 
-              alt="Profile" 
+            <img
+              src={formData.photoURL || `https://ui-avatars.com/api/?name=${formData.name}&background=random`}
+              alt="Profile"
               className="w-32 h-32 rounded-full border-4 border-[--border] object-cover"
             />
             <div className="text-center">
@@ -100,22 +112,22 @@ export default function ProfilePage() {
           {/* Edit Form */}
           <form onSubmit={handleUpdate} className="flex-1 w-full space-y-4 bg-[--bg-secondary] p-6 rounded-xl border border-[--border]">
             <Heading level={4} className="mb-4">Edit Profile</Heading>
-            
+
             <div>
               <label className="block text-sm font-medium text-[--text-muted] mb-1">Display Name</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 required
                 className="w-full px-4 py-2 bg-[--bg] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text]"
                 value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-[--text-muted] mb-1">Email (Cannot be changed)</label>
-              <input 
-                type="email" 
+              <input
+                type="email"
                 disabled
                 className="w-full px-4 py-2 bg-[--bg] border border-[--border] rounded-md text-[--text-muted] cursor-not-allowed opacity-70"
                 value={session.user.email}
@@ -124,11 +136,11 @@ export default function ProfilePage() {
 
             <div>
               <label className="block text-sm font-medium text-[--text-muted] mb-1">Photo URL</label>
-              <input 
-                type="url" 
+              <input
+                type="url"
                 className="w-full px-4 py-2 bg-[--bg] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text]"
                 value={formData.photoURL}
-                onChange={(e) => setFormData({...formData, photoURL: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, photoURL: e.target.value })}
               />
             </div>
 
