@@ -6,82 +6,134 @@ import Button from "./Button";
 import RoleBadge from "./RoleBadge";
 
 export default function LessonCard({ lesson, currentUser }) {
-  // Logic to determine if this specific user is locked out of this lesson
   const isPremiumLesson = lesson.accessLevel === "Premium";
   const isOwner = currentUser?.id === lesson.creatorId?._id;
-  const isLocked = isPremiumLesson && !currentUser?.isPremium && currentUser?.role !== "admin" && !isOwner;
+
+  const isLocked =
+    isPremiumLesson &&
+    !currentUser?.isPremium &&
+    currentUser?.role !== "admin" &&
+    !isOwner;
 
   return (
-    <Card className="relative flex flex-col h-full hover:-translate-y-1 transition-transform duration-300">
-      
-      {/* Locked Overlay */}
+    <Card className="group relative flex flex-col h-full overflow-hidden rounded-none border-2 border-(--border)">
+
+      {/* Premium Lock Overlay */}
       {isLocked && (
-        <div className="absolute inset-0 bg-[--bg]/70 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6 text-center border border-[--border] rounded-xl">
-          <span className="text-4xl mb-3">🔒</span>
-          <h3 className="font-bold text-lg text-[--text] mb-2">Premium Lesson</h3>
-          <p className="text-sm text-[--text-muted] mb-4">Upgrade your plan to unlock this wisdom.</p>
+        <div className="absolute inset-0 z-20 bg-(--bg)/95 flex flex-col items-center justify-center text-center p-6 border-2 border-(--border)">
+          <div className="w-14 h-14 border-2 border-(--border) flex items-center justify-center mb-4 text-2xl">
+            🔒
+          </div>
+
+          <h3 className="font-extrabold text-lg text-(--text) mb-2 uppercase tracking-wide">
+            Premium Lesson
+          </h3>
+
+          <p className="text-(--text-muted) text-sm mb-5 max-w-xs">
+            Upgrade your membership to unlock this lesson.
+          </p>
+
           <Link href="/pricing">
-            <Button variant="primary" size="sm">Upgrade to Premium</Button>
+            <Button size="sm">
+              Upgrade
+            </Button>
           </Link>
         </div>
       )}
 
-      {/* Image Section */}
-      <div className="w-full h-48 bg-[--bg-secondary] overflow-hidden relative">
+      {/* Image */}
+      <div className="relative h-52 overflow-hidden border-b-2 border-(--border)">
+
         {lesson.image ? (
-          <img src={lesson.image} alt={lesson.title} className="w-full h-full object-cover" />
+          <img
+            src={lesson.image}
+            alt={lesson.title}
+            className="
+              w-full
+              h-full
+              object-cover
+              grayscale-[15%]
+              transition-transform
+              duration-500
+              group-hover:scale-105
+            "
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[--text-muted]">
-            No Image
+          <div className="w-full h-full bg-(--bg-secondary) flex items-center justify-center text-4xl">
+            📖
           </div>
         )}
-        <div className="absolute top-3 left-3 flex gap-2">
+
+        {/* Badges */}
+        <div className="absolute top-0 left-0 flex">
+
           {isPremiumLesson && (
-            <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded shadow-sm">Premium</span>
-          )}
-          {lesson.isForSale && (
-            <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
-              🏷️ ৳{lesson.price}
+            <span className="px-3 py-1.5 text-xs font-bold uppercase tracking-wide bg-(--accent) text-(--on-accent) border-r-2 border-b-2 border-(--border)">
+              ✨ Premium
             </span>
           )}
+
+          {lesson.isForSale && (
+            <span className="px-3 py-1.5 text-xs font-bold uppercase tracking-wide bg-(--text) text-(--bg) border-r-2 border-b-2 border-(--border)">
+              ৳{lesson.price}
+            </span>
+          )}
+
         </div>
+
       </div>
 
-      {/* Content Section */}
+      {/* Content */}
       <div className="p-5 flex flex-col flex-grow">
-        <div className="flex gap-2 mb-3">
-          <span className="text-[10px] uppercase tracking-wider font-semibold text-[--accent] bg-[--accent]/10 px-2 py-1 rounded">
-            {lesson.category}
-          </span>
-          <span className="text-[10px] uppercase tracking-wider font-semibold text-[--text-muted] bg-[--bg-secondary] px-2 py-1 rounded border border-[--border]">
-            {lesson.emotionalTone}
-          </span>
+
+        {/* Category */}
+        <div className="mb-3">
+          <span className="eyebrow">{lesson.category}</span>
         </div>
 
-        <h3 className="text-lg font-bold text-[--text] mb-2 line-clamp-2">{lesson.title}</h3>
-        <p className="text-sm text-[--text-muted] line-clamp-3 mb-4 flex-grow">
+        {/* Title */}
+        <h3 className="text-lg font-bold text-(--text) mb-2 leading-snug line-clamp-2">
+          {lesson.title}
+        </h3>
+
+        {/* Description */}
+        <p className="text-(--text-muted) text-sm leading-relaxed line-clamp-3 flex-grow">
           {lesson.description}
         </p>
 
-        {/* Footer (Author & Button) - mt-auto pushes this to the bottom */}
-        <div className="mt-auto pt-4 border-t border-[--border] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img 
-              src={lesson.creatorId?.photoURL || `https://ui-avatars.com/api/?name=${lesson.creatorId?.name}&background=random`} 
-              alt="Author" 
-              className="w-8 h-8 rounded-full border border-[--border]"
+        {/* Footer */}
+        <div className="mt-5 pt-4 border-t-2 border-(--border) flex items-center justify-between">
+
+          <div className="flex items-center gap-2.5">
+
+            <img
+              src={
+                lesson.creatorId?.photoURL ||
+                `https://ui-avatars.com/api/?name=${lesson.creatorId?.name}&background=d97706&color=0a0a0a`
+              }
+              alt="Author"
+              className="w-9 h-9 object-cover border-2 border-(--border)"
             />
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-[--text] line-clamp-1">{lesson.creatorId?.name}</span>
+
+            <div>
+              <div className="text-sm font-bold text-(--text) leading-tight">
+                {lesson.creatorId?.name}
+              </div>
+
               <RoleBadge role={lesson.creatorId?.role} />
             </div>
+
           </div>
-          
+
           <Link href={`/lessons/${lesson._id}`}>
-            <Button variant="outline" size="sm" className="whitespace-nowrap">See Details</Button>
+            <Button variant="outline" size="sm">
+              View
+            </Button>
           </Link>
+
         </div>
       </div>
+
     </Card>
   );
 }

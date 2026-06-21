@@ -16,21 +16,21 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${sora.className} min-h-screen flex flex-col bg-[--bg] text-[--text] transition-colors duration-300`}>
+      <body className={`${sora.className} min-h-screen flex flex-col bg-(--bg) text-(--text) transition-colors duration-300 antialiased`}>
         <ThemeProvider>
           <Navbar />
-          
-          <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+          <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             {children}
           </main>
-          
+
           <Footer />
-          <Toaster 
-            position="bottom-right" 
+          <Toaster
+            position="bottom-right"
             toastOptions={{
-              className: 'bg-[--bg-secondary] text-[--text] border border-[--border]',
+              className: 'bg-(--bg-secondary) text-(--text) border-2 border-(--border) rounded-none font-semibold',
               style: { background: 'var(--bg-secondary)', color: 'var(--text)' }
-            }} 
+            }}
           />
         </ThemeProvider>
       </body>

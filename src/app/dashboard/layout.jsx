@@ -7,73 +7,129 @@ import { authClient } from "../../lib/auth-client";
 import Loading from "../../components/Loading";
 
 export default function DashboardLayout({ children }) {
-    const { data: session, isPending } = authClient.useSession();
-    const router = useRouter();
-    const pathname = usePathname();
+  const { data: session, isPending } = authClient.useSession();
+  const router = useRouter();
+  const pathname = usePathname();
 
-    useEffect(() => {
-        if (!isPending && !session) {
-            router.push("/login");
-        }
-    }, [session, isPending, router]);
-
-    if (isPending) return <Loading fullScreen />;
-    if (!session) return null;
-
-    const role = session.user.role;
-
-    // Dynamically build the sidebar navigation based on RBAC
-    // Dynamically build the sidebar navigation
-    const navLinks = [
-        { name: "Overview", href: "/dashboard" },
-        { name: "My Profile", href: "/dashboard/profile" },
-        { name: "My Favorites", href: "/dashboard/my-favorites" }, // Updated path
-        { name: "My Purchases", href: "/dashboard/purchases" },
-        { name: "Add Lesson", href: "/dashboard/add-lesson" },      // Moved here for all users
-        { name: "My Created Lessons", href: "/dashboard/my-lessons" } // Moved here for all users
-    ];
-
-    if (role === "buyer") {
-        navLinks.push({ name: "Become a Seller", href: "/dashboard/become-seller" });
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push("/login");
     }
+  }, [session, isPending, router]);
 
-    if (role === "seller" || role === "admin") {
-        navLinks.push({ name: "Seller Dashboard", href: "/dashboard/seller" });
-    }
+  if (isPending) return <Loading fullScreen />;
+  if (!session) return null;
 
-    if (role === "admin") {
-        navLinks.push({ name: "Admin Dashboard", href: "/dashboard/admin" });
-    }
+  const role = session.user.role;
 
-    return (
-        <div className="flex flex-col md:flex-row gap-8 min-h-[70vh]">
+  // Dynamically build the sidebar navigation based on RBAC
+  // Dynamically build the sidebar navigation
+  const navLinks = [
+    { name: "Overview", href: "/dashboard" },
+    { name: "My Profile", href: "/dashboard/profile" },
+    { name: "My Favorites", href: "/dashboard/my-favorites" }, // Updated path
+    { name: "My Purchases", href: "/dashboard/purchases" },
+    { name: "Add Lesson", href: "/dashboard/add-lesson" },      // Moved here for all users
+    { name: "My Created Lessons", href: "/dashboard/my-lessons" } // Moved here for all users
+  ];
 
-            {/* Sidebar Navigation */}
-            <aside className="w-full md:w-64 shrink-0">
-                <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-4 md:pb-0 scrollbar-hide">
-                    {navLinks.map((link) => {
-                        const isActive = pathname === link.href;
-                        return (
-                            <Link
-                                key={link.name}
-                                href={link.href}
-                                className={`whitespace-nowrap px-4 py-3 rounded-lg font-medium transition-colors ${isActive
-                                        ? "bg-[--accent] text-white shadow-sm"
-                                        : "bg-[--bg-secondary] text-[--text-muted] hover:bg-[--border] hover:text-[--text]"
-                                    }`}
-                            >
-                                {link.name}
-                            </Link>
-                        );
-                    })}
-                </nav>
-            </aside>
+  if (role === "buyer") {
+    navLinks.push({ name: "Become a Seller", href: "/dashboard/become-seller" });
+  }
 
-            {/* Main Content Area */}
-            <div className="flex-1 min-w-0">
-                {children}
+  if (role === "seller" || role === "admin") {
+    navLinks.push({ name: "Seller Dashboard", href: "/dashboard/seller" });
+  }
+
+  if (role === "admin") {
+    navLinks.push({ name: "Admin Dashboard", href: "/dashboard/admin" });
+  }
+
+  return (
+    <div className="grid lg:grid-cols-[280px_1fr] gap-8 min-h-[80vh]">
+
+      {/* Sidebar */}
+      <aside
+        className="
+        h-fit
+        sticky
+        top-24
+        rounded-3xl
+        border
+        border-[--border]
+        bg-[--bg]
+        p-5
+        shadow-sm
+      "
+      >
+
+        {/* User Section */}
+        <div className="pb-5 border-b border-[--border]">
+
+          <div className="flex items-center gap-3">
+
+            <img
+              src={
+                session.user.image ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  session.user.name
+                )}&background=16a34a&color=ffffff`
+              }
+              alt={session.user.name}
+              className="w-12 h-12 rounded-2xl border border-[--border]"
+            />
+
+            <div>
+              <h3 className="font-semibold">
+                {session.user.name}
+              </h3>
+
+              <p className="text-sm text-[--text-muted]">
+                {session.user.role}
+              </p>
             </div>
 
+          </div>
+
         </div>
-    );
+
+        {/* Navigation */}
+        <nav className="mt-5 flex flex-col gap-2">
+
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href;
+
+            return (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={`
+                px-4
+                py-3
+                rounded-2xl
+                transition-all
+                duration-300
+                font-medium
+
+                ${isActive
+                    ? "bg-(--accent) text-white shadow-lg"
+                    : "text-(--text-muted) hover:bg-(--bg-secondary) hover:text-(--text)"
+                  }
+              `}
+              >
+                {link.name}
+              </Link>
+            );
+          })}
+        </nav>
+
+      </aside>
+
+      {/* Content */}
+      <section className="min-w-0">
+        {children}
+      </section>
+
+    </div>
+  );
 }

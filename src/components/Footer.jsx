@@ -2,28 +2,51 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-[--bg-secondary] border-t border-[--border] py-8 transition-colors mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-        
-        <div className="flex flex-col items-center md:items-start">
-          <span className="text-lg font-bold text-[--text]">Digital Life Lessons</span>
-          <span className="text-sm text-[--text-muted] mt-1">Preserving personal wisdom.</span>
+    <footer className="border-t-2 border-(--border) mt-24">
+      <div className="brutal-bar-accent" />
+      <div className="max-w-7xl mx-auto px-6 py-16">
+
+        <div className="grid md:grid-cols-3 gap-12">
+
+          <div>
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-7 h-7 bg-(--text) text-(--bg) flex items-center justify-center text-[10px] font-bold">
+                DL
+              </div>
+              <h3 className="font-extrabold text-(--text)">
+                Digital<span className="text-(--accent)">Life</span>
+              </h3>
+            </div>
+
+            <p className="text-sm text-(--text-muted) leading-relaxed max-w-xs">
+              Preserve experiences, share wisdom, and help others grow
+              through life's lessons.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="eyebrow mb-4">Explore</h4>
+
+            <div className="flex flex-col gap-2.5 text-sm font-semibold">
+              <Link href="/lessons" className="text-(--text-muted) hover:text-(--accent) transition-colors w-fit">Lessons</Link>
+              <Link href="/pricing" className="text-(--text-muted) hover:text-(--accent) transition-colors w-fit">Pricing</Link>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="eyebrow mb-4">Community</h4>
+
+            <p className="text-sm text-(--text-muted) leading-relaxed max-w-xs">
+              Learn from people who have already walked the road ahead.
+            </p>
+          </div>
+
         </div>
 
-        <div className="flex gap-6 text-sm text-[--text-muted]">
-          <Link href="/terms" className="hover:text-[--text] transition-colors">Terms & Conditions</Link>
-          <a href="mailto:contact@digitallifelessons.com" className="hover:text-[--text] transition-colors">Contact Us</a>
+        <div className="border-t-2 border-(--border) mt-12 pt-6 text-sm text-(--text-muted) font-semibold">
+          © {new Date().getFullYear()} DigitalLife. All rights reserved.
         </div>
 
-        <div className="flex gap-4">
-          {/* New X Logo SVG */}
-          <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-[--text-muted] hover:text-[--text] transition-colors">
-            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-            </svg>
-          </a>
-        </div>
-        
       </div>
     </footer>
   );

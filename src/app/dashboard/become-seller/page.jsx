@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { authClient } from "../../lib/auth-client";
-import Heading from "../../components/Heading";
-import Card from "../../components/Card";
-import Button from "../../components/Button";
+import { authClient } from "../../../lib/auth-client";
+import Heading from "../../../components/Heading";
+import Card from "../../../components/Card";
+import Button from "../../../components/Button";
 
 export default function BecomeSellerPage() {
   const { data: session } = authClient.useSession();

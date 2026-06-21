@@ -15,65 +15,174 @@ export default function DashboardHomePage() {
   const { user } = session;
 
   return (
-    <div className="space-y-6">
-      <Heading level={2}>Welcome back, {user.name} 👋</Heading>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        {/* Account Status Card */}
-        <Card className="p-6 flex flex-col items-start gap-4">
-          <Heading level={3}>Account Status</Heading>
-          
-          <div className="flex items-center gap-4">
-            <img 
-              src={user.photoURL || `https://ui-avatars.com/api/?name=${user.name}&background=random`} 
-              alt="Profile" 
-              className="w-16 h-16 rounded-full border border-[--border]"
+<div className="space-y-8">
+
+  {/* Welcome Banner */}
+  <Card className="p-8 overflow-hidden relative">
+
+    <div className="absolute top-0 right-0 w-72 h-72 bg-green-500/5 rounded-full blur-3xl" />
+
+    <div className="relative z-10">
+      <p className="text-sm text-[--text-muted] mb-2">
+        Dashboard
+      </p>
+
+      <h1 className="text-4xl font-bold mb-3">
+        Welcome back, {user.name} 👋
+      </h1>
+
+      <p className="text-[--text-muted] max-w-2xl">
+        Continue building your wisdom library, explore new lessons,
+        and track your learning journey.
+      </p>
+    </div>
+
+  </Card>
+
+  {/* Stats */}
+  <div className="grid md:grid-cols-3 gap-6">
+
+    <Card className="p-6">
+      <div className="text-3xl mb-3">📚</div>
+      <div className="text-sm text-[--text-muted]">
+        Lessons
+      </div>
+      <div className="text-3xl font-bold mt-1">
+        --
+      </div>
+    </Card>
+
+    <Card className="p-6">
+      <div className="text-3xl mb-3">❤️</div>
+      <div className="text-sm text-[--text-muted]">
+        Favorites
+      </div>
+      <div className="text-3xl font-bold mt-1">
+        --
+      </div>
+    </Card>
+
+    <Card className="p-6">
+      <div className="text-3xl mb-3">⭐</div>
+      <div className="text-sm text-[--text-muted]">
+        Membership
+      </div>
+      <div className="text-xl font-semibold mt-1">
+        {user.isPremium ? "Premium" : "Free"}
+      </div>
+    </Card>
+
+  </div>
+
+  <div className="grid lg:grid-cols-2 gap-6">
+
+    {/* Account Card */}
+    <Card className="p-6">
+
+      <div className="flex items-center gap-4 mb-6">
+
+        <img
+          src={
+            user.photoURL ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              user.name
+            )}&background=16a34a&color=ffffff`
+          }
+          alt={user.name}
+          className="w-20 h-20 rounded-3xl border border-[--border]"
+        />
+
+        <div>
+          <h2 className="font-bold text-xl">
+            {user.name}
+          </h2>
+
+          <p className="text-[--text-muted]">
+            {user.email}
+          </p>
+
+          <div className="mt-2">
+            <RoleBadge
+              role={user.role}
+              isPremium={user.isPremium}
             />
-            <div>
-              <p className="font-semibold text-lg text-[--text]">{user.email}</p>
-              <div className="flex flex-wrap gap-2 mt-1">
-                <RoleBadge role={user.role} isPremium={user.isPremium} />
-              </div>
-            </div>
           </div>
-
-          {/* Premium Upsell for Free Users */}
-          {!user.isPremium && (
-            <div className="mt-4 p-4 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg w-full">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-3">
-                Unlock all Premium life lessons and exclusive wisdom by upgrading your account.
-              </p>
-              <Link href="/pricing">
-                <Button variant="primary" size="sm">View Premium Plans</Button>
-              </Link>
-            </div>
-          )}
-        </Card>
-
-        {/* Quick Actions Card */}
-        <Card className="p-6">
-          <Heading level={3} className="mb-4">Quick Links</Heading>
-          <div className="flex flex-col gap-4">
-            <Link href="/lessons" className="text-[--accent] hover:underline font-medium flex items-center gap-2">
-              <span>📚</span> Browse Public Lessons
-            </Link>
-            <Link href="/dashboard/favorites" className="text-[--accent] hover:underline font-medium flex items-center gap-2">
-              <span>🔖</span> View Saved Lessons
-            </Link>
-            <Link href="/dashboard/purchases" className="text-[--accent] hover:underline font-medium flex items-center gap-2">
-              <span>💳</span> View My Purchases
-            </Link>
-            
-            {user.role === "buyer" && (
-              <Link href="/dashboard/become-seller" className="text-[--text-muted] hover:text-[--text] transition-colors flex items-center gap-2 mt-2 pt-2 border-t border-[--border]">
-                <span>🏪</span> Apply to become a Seller
-              </Link>
-            )}
-          </div>
-        </Card>
+        </div>
 
       </div>
-    </div>
-  );
+
+      {!user.isPremium && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+
+          <h3 className="font-semibold mb-2">
+            Upgrade to Premium
+          </h3>
+
+          <p className="text-sm text-[--text-muted] mb-4">
+            Unlock exclusive premium lessons and deeper insights.
+          </p>
+
+          <Link href="/pricing">
+            <Button size="sm">
+              View Plans
+            </Button>
+          </Link>
+
+        </div>
+      )}
+
+    </Card>
+
+    {/* Quick Actions */}
+    <Card className="p-6">
+
+      <h2 className="text-xl font-bold mb-6">
+        Quick Actions
+      </h2>
+
+      <div className="grid gap-3">
+
+        <Link href="/lessons">
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+          >
+            📚 Browse Lessons
+          </Button>
+        </Link>
+
+        <Link href="/dashboard/my-favorites">
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+          >
+            ❤️ My Favorites
+          </Button>
+        </Link>
+
+        <Link href="/dashboard/purchases">
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+          >
+            💳 Purchases
+          </Button>
+        </Link>
+
+        <Link href="/dashboard/add-lesson">
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+          >
+            ✍️ Create Lesson
+          </Button>
+        </Link>
+
+      </div>
+
+    </Card>
+
+  </div>
+
+</div>  );
 }

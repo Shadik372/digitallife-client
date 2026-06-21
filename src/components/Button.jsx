@@ -1,28 +1,33 @@
-export default function Button({ 
-  children, 
-  variant = 'primary', 
-  size = 'md', 
-  className = '', 
-  ...props 
+export default function Button({
+  variant = "primary",
+  size = "md",
+  children,
+  className = "",
+  ...props
 }) {
-  const baseStyles = "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed";
-  
-  const variants = {
-    primary: "bg-[--accent] text-white hover:bg-[--accent-hover]",
-    secondary: "bg-[--bg-secondary] text-[--text] border border-[--border] hover:brightness-95 dark:hover:brightness-110",
-    outline: "border-2 border-[--accent] text-[--accent] hover:bg-[--accent] hover:text-white",
-    danger: "bg-red-600 text-white hover:bg-red-700"
-  };
-  
+  const base =
+    "inline-flex items-center justify-center gap-2 font-bold uppercase tracking-wide rounded-none border-2 border-(--border) transition-colors duration-150 active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none";
+
   const sizes = {
-    sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-base",
-    lg: "px-6 py-3 text-lg"
+    sm: "px-4 py-2 text-xs",
+    md: "px-6 py-3 text-sm",
+    lg: "px-8 py-4 text-base",
+  };
+
+  const variants = {
+    primary:
+      "bg-(--accent) text-(--on-accent) hover:bg-(--text) hover:text-(--bg) hover:border-(--text)",
+
+    outline:
+      "bg-(--bg) text-(--text) hover:bg-(--text) hover:text-(--bg)",
+
+    ghost:
+      "border-transparent text-(--text-muted) hover:text-(--text) hover:bg-(--bg-secondary)",
   };
 
   return (
-    <button 
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`} 
+    <button
+      className={`${base} ${sizes[size]} ${variants[variant]} ${className}`}
       {...props}
     >
       {children}

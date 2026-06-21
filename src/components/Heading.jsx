@@ -1,11 +1,11 @@
 export default function Heading({ level = 2, children, className = '' }) {
   const Tag = `h${level}`;
-  
+
   const styles = {
-    1: "text-4xl md:text-5xl font-bold tracking-tight text-[--text]",
-    2: "text-2xl md:text-3xl font-semibold tracking-tight text-[--text]",
-    3: "text-xl md:text-2xl font-semibold text-[--text]",
-    4: "text-lg font-semibold text-[--text]"
+    1: "text-5xl md:text-7xl font-extrabold tracking-tight leading-[0.95] text-(--text)",
+    2: "text-3xl md:text-4xl font-extrabold tracking-tight text-(--text)",
+    3: "text-xl md:text-2xl font-bold tracking-tight text-(--text)",
+    4: "text-lg font-bold text-(--text)"
   };
 
   return (
