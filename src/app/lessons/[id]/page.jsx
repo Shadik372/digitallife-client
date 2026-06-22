@@ -24,7 +24,6 @@ export default function LessonDetailsPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isBuying, setIsBuying] = useState(false);
 
   // Random static views as requested
   const views = lesson?.likesCount
@@ -111,31 +110,14 @@ export default function LessonDetailsPage() {
     }
   };
 
-  const handleBuyLesson = async () => {
-    setIsBuying(true);
-    try {
-      const res = await api.post(`/api/payment/create-lesson-checkout-session`, {
-        lessonId: params.id
-      });
-      if (res.data.success && res.data.url) {
-        window.location.href = res.data.url; // Redirect to Stripe
-      }
-    } catch (error) {
-      toast.error("Payment initiation failed.");
-      setIsBuying(false);
-    }
-  };
-
   if (isLoading || !lesson) return <Loading fullScreen />;
 
-  // Access Control Logic
+  // ==========================================
+  // 🔒 ACCESS CONTROL LOGIC (Netflix Style)
+  // ==========================================
   const isOwner = session?.user?.id === lesson.creatorId?._id;
   const isAdmin = session?.user?.role === "admin";
   const isPremiumLocked = lesson.accessLevel === "Premium" && !session?.user?.isPremium && !isOwner && !isAdmin;
-
-  // Note: In a full app, you'd check if the user already bought this via the Purchases API.
-  // For UI flow purposes, we show the lock if it's for sale and they aren't the owner.
-  const isMarketplaceLocked = lesson.isForSale && !isOwner && !isAdmin;
 
   const readingTime = Math.ceil(lesson.description.split(/\s+/).length / 200);
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
@@ -146,41 +128,24 @@ export default function LessonDetailsPage() {
 
         {/* Header Section */}
         <div className="space-y-6">
-
           <div className="flex flex-wrap gap-2">
-
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-(--accent)/10 text-(--accent)">
               {lesson.category}
             </span>
-
             {lesson.accessLevel === "Premium" && (
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500">
-                ✨ Premium
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-sm">
+                ⭐ Premium
               </span>
             )}
-
           </div>
 
-          <Heading level={1}>
-            {lesson.title}
-          </Heading>
+          <Heading level={1}>{lesson.title}</Heading>
 
           <div className="flex flex-wrap items-center gap-4 text-sm text-(--text-muted)">
-
-            <span>
-              📅 {new Date(lesson.createdAt).toLocaleDateString()}
-            </span>
-
-            <span>
-              ⏱️ {readingTime} min read
-            </span>
-
-            <span>
-              👁️ {views} views
-            </span>
-
+            <span>📅 {new Date(lesson.createdAt).toLocaleDateString()}</span>
+            <span>⏱️ {readingTime} min read</span>
+            <span>👁️ {views} views</span>
           </div>
-
         </div>
 
         {/* Featured Image */}
@@ -188,32 +153,27 @@ export default function LessonDetailsPage() {
           <img src={lesson.image} alt={lesson.title} className="w-full h-[500px] object-cover rounded-[32px] border border-(--border) shadow-xl" />
         )}
 
-        {/* Main Content Area (With Lock Logic) */}
-        <Card className="relative p-10 md:p-14">
-          {(isPremiumLocked || isMarketplaceLocked) && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-(--bg)/60 backdrop-blur-md rounded-2xl border border-(--border) p-8 text-center">
-              <span className="text-5xl mb-4">🔒</span>
-              <Heading level={3} className="mb-2">This Wisdom is Locked</Heading>
-
-              {isPremiumLocked && !lesson.isForSale && (
-                <>
-                  <p className="text-(--text-muted) mb-6 max-w-md">This is a Premium lesson. Upgrade your account for lifetime access to all premium platform content.</p>
-                  <Button onClick={() => router.push("/pricing")} variant="primary" size="lg">View Pricing</Button>
-                </>
-              )}
-
-              {isMarketplaceLocked && (
-                <>
-                  <p className="text-(--text-muted) mb-6 max-w-md">This lesson is available for individual purchase directly from the creator.</p>
-                  <Button onClick={handleBuyLesson} variant="primary" size="lg" disabled={isBuying} className="flex items-center gap-2">
-                    {isBuying ? "Redirecting..." : `Buy this Lesson - ৳${lesson.price}`}
-                  </Button>
-                </>
-              )}
+        {/* Main Content Area */}
+        <Card className="relative p-10 md:p-14 overflow-hidden border border-(--border)">
+          
+          {/* THE PAYWALL OVERLAY */}
+          {isPremiumLocked && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gradient-to-t from-(--bg) via-(--bg)/90 to-transparent backdrop-blur-[2px] p-8 text-center pt-32">
+              <div className="bg-amber-500/10 p-4 rounded-full mb-4 border border-amber-500/20 shadow-lg">
+                <span className="text-5xl">👑</span>
+              </div>
+              <Heading level={3} className="mb-2 text-(--text)">Premium Wisdom Locked</Heading>
+              <p className="text-(--text-muted) mb-6 max-w-md font-medium">
+                This lesson is exclusive to Premium members. Upgrade once for lifetime access to every locked lesson on the platform.
+              </p>
+              <Button onClick={() => router.push("/pricing")} variant="primary" size="lg" className="shadow-xl shadow-amber-500/20 flex items-center gap-2">
+                ⭐ Upgrade to Premium
+              </Button>
             </div>
           )}
 
-          <div className={`prose prose-lg dark:prose-invert max-w-none text-(--text) leading-8 whitespace-pre-wrap ${(isPremiumLocked || isMarketplaceLocked) ? "h-64 overflow-hidden blur-sm" : ""}`}>
+          {/* Lesson Text (Blurred if locked) */}
+          <div className={`prose prose-lg dark:prose-invert max-w-none text-(--text) leading-8 whitespace-pre-wrap ${isPremiumLocked ? "max-h-[300px] overflow-hidden select-none opacity-40 blur-[1px]" : ""}`}>
             {lesson.description}
           </div>
         </Card>
@@ -234,9 +194,7 @@ export default function LessonDetailsPage() {
                 <span className="text-lg font-bold text-(--text)">{lesson.creatorId?.name}</span>
                 <RoleBadge role={lesson.creatorId?.role} isPremium={lesson.creatorId?.isPremium} />
               </div>
-              <p className="text-sm text-(--text-muted) mt-2">
-                Creator and contributor on Digital Life Lessons
-              </p>
+              <p className="text-sm text-(--text-muted) mt-2">Creator on Digital Life Lessons</p>
             </div>
           </Card>
 
@@ -245,22 +203,13 @@ export default function LessonDetailsPage() {
             <Button variant={isLiked ? "primary" : "outline"} onClick={handleLike} className="flex items-center gap-2">
               {isLiked ? "❤️ Liked" : "🤍 Like"} ({lesson.likesCount})
             </Button>
-
             <Button variant={isSaved ? "primary" : "outline"} onClick={handleSave} className="flex items-center gap-2">
               {isSaved ? "🔖 Saved" : "📑 Save"} ({lesson.savesCount})
             </Button>
-
-            {/* Social Share via react-share */}
             <div className="flex items-center gap-2 border-l border-(--border) pl-3">
-              <FacebookShareButton url={shareUrl} quote={lesson.title}>
-                <FacebookIcon size={36} round />
-              </FacebookShareButton>
-              <TwitterShareButton url={shareUrl} title={lesson.title}>
-                <XIcon size={36} round />
-              </TwitterShareButton>
-              <LinkedinShareButton url={shareUrl} summary={lesson.title}>
-                <LinkedinIcon size={36} round />
-              </LinkedinShareButton>
+              <FacebookShareButton url={shareUrl} quote={lesson.title}><FacebookIcon size={36} round /></FacebookShareButton>
+              <TwitterShareButton url={shareUrl} title={lesson.title}><XIcon size={36} round /></TwitterShareButton>
+              <LinkedinShareButton url={shareUrl} summary={lesson.title}><LinkedinIcon size={36} round /></LinkedinShareButton>
             </div>
           </div>
         </div>
@@ -289,18 +238,12 @@ export default function LessonDetailsPage() {
             ) : (
               comments.map(comment => (
                 <div key={comment._id} className="flex gap-4 p-5 rounded-2xl border border-(--border) bg-(--bg) shadow-sm">
-                  <img
-                    src={comment.userId?.photoURL || `https://ui-avatars.com/api/?name=${comment.userId?.name}&background=16a34a&color=ffffff`}
-                    alt="User"
-                    className="w-10 h-10 rounded-full"
-                  />
+                  <img src={comment.userId?.photoURL || `https://ui-avatars.com/api/?name=${comment.userId?.name}&background=16a34a&color=ffffff`} alt="User" className="w-10 h-10 rounded-full" />
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-semibold text-(--text)">{comment.userId?.name}</span>
                       <RoleBadge role={comment.userId?.role} />
-                      <span className="text-xs text-(--text-muted)">
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </span>
+                      <span className="text-xs text-(--text-muted)">{new Date(comment.createdAt).toLocaleDateString()}</span>
                     </div>
                     <p className="text-(--text)">{comment.text}</p>
                   </div>

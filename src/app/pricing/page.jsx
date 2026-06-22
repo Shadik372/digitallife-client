@@ -73,7 +73,7 @@ export default function PricingPage() {
             className="w-full cursor-default"
             disabled={true}
           >
-            {isPremium ? "Included" : "Your Current Plan"}
+            {isPremium ? "Included in Premium" : "Your Current Plan"}
           </Button>
         </Card>
 
@@ -93,10 +93,12 @@ export default function PricingPage() {
             <li className="flex items-center gap-3"><span>⭐</span> One-time payment, no subscriptions</li>
           </ul>
 
+          {/* ✨ THE SHINY PREMIUM REPLACEMENT ✨ */}
           {isPremium ? (
-            <Button variant="primary" className="w-full" disabled={true}>
-              You are already Premium 🎉
-            </Button>
+            <div className="w-full p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-center">
+              <h3 className="text-lg font-bold text-amber-500 mb-1">⭐ You are Premium!</h3>
+              <p className="text-sm text-amber-500/80 font-medium">Thank you for your support.</p>
+            </div>
           ) : (
             <Button 
               variant="primary" 

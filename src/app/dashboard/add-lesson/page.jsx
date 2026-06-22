@@ -14,15 +14,14 @@ export default function AddLessonPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
+  // Cleaned up state: Removed price and isForSale!
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     category: "Personal Growth",
     emotionalTone: "Motivational",
-    accessLevel: "Free", // Defaults to Free
-    visibility: "Public",
-    isForSale: false,
-    price: ""
+    accessLevel: "Free",
+    visibility: "Public"
   });
   const [imageFile, setImageFile] = useState(null);
 
@@ -56,10 +55,10 @@ export default function AddLessonPage() {
     }
 
     try {
+      // Cleaned up payload
       const payload = {
         ...formData,
-        image: imageUrl,
-        price: formData.isForSale ? Number(formData.price) : 0
+        image: imageUrl
       };
 
       const res = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/lessons`, payload, {
@@ -79,15 +78,15 @@ export default function AddLessonPage() {
 
   if (!session) return null;
 
-  const isPremium = session.user.isPremium;
-  const canSell = session.user.role === "seller" || session.user.role === "admin";
+  // Logic to determine if they are allowed to create Premium content
+  const canCreatePremium = session.user.role === "seller" || session.user.role === "admin";
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 pb-12">
       <Heading level={2}>Create a New Lesson</Heading>
       <p className="text-[--text-muted]">Share your wisdom with the world or keep it private.</p>
 
-      <Card className="p-6 md:p-8">
+      <Card className="p-6 md:p-8 border border-[--border]">
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Title */}
@@ -97,7 +96,7 @@ export default function AddLessonPage() {
               type="text" 
               required
               placeholder="E.g., The hardest lesson I learned in my 20s"
-              className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text]"
+              className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text] transition-colors"
               value={formData.title}
               onChange={(e) => setFormData({...formData, title: e.target.value})}
             />
@@ -108,9 +107,9 @@ export default function AddLessonPage() {
             <label className="block text-sm font-medium text-[--text-muted] mb-1">Full Description / Story</label>
             <textarea 
               required
-              rows="6"
+              rows="8"
               placeholder="Share the full insight here..."
-              className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text] resize-y"
+              className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text] resize-y transition-colors"
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
             />
@@ -158,11 +157,15 @@ export default function AddLessonPage() {
             <div className="relative group">
               <label className="block text-sm font-medium text-[--text-muted] mb-1 flex items-center gap-2">
                 Access Level 
-                {!isPremium && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded cursor-help">Upgrade to unlock Premium</span>}
+                {!canCreatePremium && (
+                  <span className="text-xs bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded border border-blue-500/20">
+                    Sellers Only
+                  </span>
+                )}
               </label>
               <select 
-                disabled={!isPremium}
-                className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text] disabled:opacity-50"
+                disabled={!canCreatePremium}
+                className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text] disabled:opacity-50 disabled:cursor-not-allowed"
                 value={formData.accessLevel}
                 onChange={(e) => setFormData({...formData, accessLevel: e.target.value})}
               >
@@ -179,43 +182,12 @@ export default function AddLessonPage() {
               type="file" 
               accept="image/*"
               onChange={(e) => setImageFile(e.target.files[0])}
-              className="block w-full text-sm text-[--text-muted] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[--accent] file:text-white hover:file:bg-[--accent-hover] transition-colors"
+              className="block w-full text-sm text-[--text-muted] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[--accent]/10 file:text-[--accent] hover:file:bg-[--accent]/20 transition-colors cursor-pointer"
             />
           </div>
 
-          {/* Seller Exclusive: Marketplace Pricing */}
-          {canSell && formData.visibility === "Public" && (
-            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-semibold text-green-800 dark:text-green-300">List in Marketplace (Seller Exclusive)</h4>
-                  <p className="text-xs text-green-700 dark:text-green-400 mt-1">Sell this specific lesson individually to any user.</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" checked={formData.isForSale} onChange={(e) => setFormData({...formData, isForSale: e.target.checked})} />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[--accent]"></div>
-                </label>
-              </div>
-
-              {formData.isForSale && (
-                <div>
-                  <label className="block text-sm font-medium text-[--text-muted] mb-1">Price (৳ BDT)</label>
-                  <input 
-                    type="number" 
-                    min="10"
-                    required={formData.isForSale}
-                    placeholder="E.g., 200"
-                    className="w-full md:w-1/3 px-4 py-2 bg-[--bg] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text]"
-                    value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          <Button type="submit" variant="primary" className="w-full" disabled={isLoading}>
-            {isLoading ? "Creating Lesson..." : "Create Lesson"}
+          <Button type="submit" variant="primary" className="w-full py-3 text-lg mt-4" disabled={isLoading}>
+            {isLoading ? "Publishing Lesson..." : "Publish Lesson"}
           </Button>
 
         </form>

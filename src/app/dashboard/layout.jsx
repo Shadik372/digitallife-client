@@ -23,7 +23,6 @@ export default function DashboardLayout({ children }) {
   const role = session.user.role;
 
   // Dynamically build the sidebar navigation based on RBAC
-  // Dynamically build the sidebar navigation
   const navLinks = [
     { name: "Overview", href: "/dashboard" },
     { name: "My Profile", href: "/dashboard/profile" },
@@ -42,7 +41,9 @@ export default function DashboardLayout({ children }) {
   }
 
   if (role === "admin") {
-    navLinks.push({ name: "Admin Dashboard", href: "/dashboard/admin" });
+    navLinks.push({ name: "👑 Command Center", href: "/dashboard/admin" });
+    navLinks.push({ name: "📝 Review Queue", href: "/dashboard/admin/applications" });
+    navLinks.push({ name: "👥 Manage Users", href: "/dashboard/admin/users" });
   }
 
   return (
@@ -80,8 +81,15 @@ export default function DashboardLayout({ children }) {
             />
 
             <div>
-              <h3 className="font-semibold">
+              <h3 className="font-semibold flex items-center gap-2">
                 {session.user.name}
+
+                {/* The Premium Badge */}
+                {session.user.isPremium && (
+                  <span className="bg-amber-500/10 text-amber-500 text-[10px] px-2 py-0.5 rounded-full font-bold border border-amber-500/20 uppercase tracking-wider flex items-center gap-1">
+                    ⭐ Premium
+                  </span>
+                )}
               </h3>
 
               <p className="text-sm text-[--text-muted]">
