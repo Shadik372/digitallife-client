@@ -35,29 +35,40 @@ export default function LessonDetailsPage() {
     ? lesson.likesCount * 17 + 100
     : 100;
 
-  useEffect(() => {
-    if (!session) return; // Wait for PrivateRoute to handle auth
+useEffect(() => {
+    if (!session) return;
 
     const fetchLessonData = async () => {
+      setIsLoading(true);
       try {
-        const [lessonRes, commentsRes, favRes] = await Promise.all([
-          api.get(`/api/lessons/${params.id}`),
-          api.get(`/api/comments/${params.id}`),
-          api.get(`/api/favorites`),
-        ]);
-
+        // 1. Fetch the Lesson (Critical)
+        const lessonRes = await api.get(`/api/lessons/${params.id}`);
         if (lessonRes.data.success) {
           setLesson(lessonRes.data.lesson);
           setIsLiked(lessonRes.data.lesson.likes.includes(session.user.id));
         }
-        if (commentsRes.data.success) setComments(commentsRes.data.comments);
 
-        // Check if saved
-        if (favRes.data.success) {
-          const saved = favRes.data.favorites.some(f => f.lessonId._id === params.id);
-          setIsSaved(saved);
+        // 2. Fetch Comments (Non-critical - wrap in its own try/catch)
+        try {
+          const commentsRes = await api.get(`/api/comments/${params.id}`);
+          if (commentsRes.data.success) setComments(commentsRes.data.comments);
+        } catch (e) {
+          console.warn("Comments failed to load, continuing...");
         }
+
+        // 3. Fetch Favorites (Non-critical)
+        try {
+          const favRes = await api.get(`/api/favorites`);
+          if (favRes.data.success) {
+            const saved = favRes.data.favorites.some(f => f.lessonId?._id === params.id);
+            setIsSaved(saved);
+          }
+        } catch (e) {
+          console.warn("Favorites failed to load, continuing...");
+        }
+
       } catch (error) {
+        console.error("Critical error loading lesson:", error);
         toast.error("Failed to load lesson details.");
         router.push("/lessons");
       } finally {
@@ -119,14 +130,14 @@ export default function LessonDetailsPage() {
   const handleReport = async (e) => {
     e.preventDefault();
     if (!reportReason) return toast.error("Please select a reason to report.");
-    
+
     setIsSubmittingReport(true);
     try {
       const res = await api.post(`/api/lessons/${params.id}/report`, {
         reason: reportReason,
         reportedUserEmail: lesson.creatorId?.email || "unknown"
       });
-      
+
       if (res.data.success) {
         toast.success("Thank you. This lesson has been reported to the admins.");
         setIsReportModalOpen(false);
@@ -184,27 +195,54 @@ export default function LessonDetailsPage() {
 
         {/* Main Content Area */}
         <Card className="relative p-10 md:p-14 overflow-hidden border border-[--border]">
-          
-          {/* THE PAYWALL OVERLAY */}
+
+          {/* THE PAYWALL OVERLAY - HYBRID MODEL */}
           {isPremiumLocked && (
-            <div className="absolute inset-x-0 bottom-0 h-3/4 z-10 flex flex-col items-center justify-end bg-gradient-to-t from-[--bg] via-[--bg] to-transparent pb-16 px-8 text-center">
+            <div className="absolute inset-x-0 bottom-0 h-[85%] z-10 flex flex-col items-center justify-end bg-gradient-to-t from-[--bg] via-[--bg]/95 to-transparent pb-12 px-4 sm:px-8 text-center backdrop-blur-[2px]">
               <div className="bg-amber-500/10 p-4 rounded-full mb-4 border border-amber-500/20 shadow-lg mt-auto">
-                <span className="text-5xl">👑</span>
+                <span className="text-4xl sm:text-5xl">👑</span>
               </div>
               <Heading level={3} className="mb-2 text-[--text]">Premium Wisdom Locked</Heading>
-              <p className="text-[--text-muted] mb-6 max-w-md font-medium text-shadow-sm">
-                Keep reading this story and unlock hundreds of other exclusive lessons by upgrading to Premium.
+              <p className="text-[--text-muted] mb-8 max-w-md font-medium text-shadow-sm text-sm sm:text-base">
+                This is a premium lesson. You can unlock it instantly, or upgrade your account to get access to everything forever.
               </p>
-              <Button onClick={() => router.push("/pricing")} variant="primary" size="lg" className="shadow-xl shadow-amber-500/20 flex items-center gap-2">
-                ⭐ Upgrade for Lifetime Access
-              </Button>
+
+              <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
+                {/* Option A: Buy Individual Lesson (Only if Seller allowed it) */}
+                {lesson.isForSale && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await api.post("/api/payments/create-lesson-checkout-session", { lessonId: lesson._id });
+                        window.location.href = res.data.url;
+                      } catch (err) { 
+                        toast.error("Checkout failed. Please check backend payment routes."); 
+                        console.error(err);
+                      }
+                    }}
+                    className="w-full sm:w-auto px-6 py-3 sm:py-4 bg-[--bg-secondary] border-2 border-[--border] hover:border-[--text] text-[--text] font-bold rounded-xl transition-all shadow-md"
+                  >
+                    Buy Lesson (৳{lesson.price})
+                  </button>
+                )}
+
+                {/* Option B: The "All-Access" Premium Pass */}
+                <Button
+                  onClick={() => router.push("/pricing")}
+                  variant="primary"
+                  size="lg"
+                  className="w-full sm:w-auto shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2"
+                >
+                  ⭐ Get Premium Pass
+                </Button>
+              </div>
             </div>
           )}
 
           {/* Lesson Text */}
           <div className={`prose prose-lg dark:prose-invert max-w-none text-[--text] leading-8 whitespace-pre-wrap ${isPremiumLocked ? "max-h-[400px] overflow-hidden select-none" : ""}`}>
-            {isPremiumLocked && lesson.description.length > 400 
-              ? lesson.description.slice(0, 400) + "..." 
+            {isPremiumLocked && lesson.description.length > 400
+              ? lesson.description.slice(0, 400) + "..."
               : lesson.description}
           </div>
         </Card>
@@ -233,14 +271,14 @@ export default function LessonDetailsPage() {
             <Button variant={isLiked ? "primary" : "outline"} onClick={handleLike} className="flex items-center gap-2">
               {isLiked ? "❤️ Liked" : "🤍 Like"} ({lesson.likesCount})
             </Button>
-            
+
             <Button variant={isSaved ? "primary" : "outline"} onClick={handleSave} className="flex items-center gap-2">
               {isSaved ? "🔖 Saved" : "📑 Save"} ({lesson.savesCount})
             </Button>
 
             {/* 🚩 The Report Button */}
             {!isOwner && !isAdmin && (
-              <button 
+              <button
                 onClick={() => setIsReportModalOpen(true)}
                 className="px-4 py-2 flex items-center gap-2 rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/10 font-bold transition-colors text-sm"
               >
@@ -307,15 +345,15 @@ export default function LessonDetailsPage() {
               <Heading level={4} className="text-red-500 flex items-center gap-2">🚩 Report Lesson</Heading>
               <button onClick={() => setIsReportModalOpen(false)} className="text-2xl text-[--text-muted] hover:text-[--text]">&times;</button>
             </div>
-            
+
             <form onSubmit={handleReport} className="p-6 space-y-4">
               <p className="text-sm text-[--text-muted]">
                 If you believe this lesson violates platform guidelines, please select a reason below. This will be sent to the admin team for review.
               </p>
-              
+
               <div>
                 <label className="block text-sm font-bold text-[--text] mb-2">Reason for reporting:</label>
-                <select 
+                <select
                   required
                   className="w-full p-3 bg-[--bg-secondary] border border-[--border] rounded-xl text-[--text] focus:outline-none focus:border-red-500"
                   value={reportReason}
@@ -332,8 +370,8 @@ export default function LessonDetailsPage() {
 
               <div className="pt-4 flex gap-3 justify-end">
                 <Button type="button" variant="outline" onClick={() => setIsReportModalOpen(false)}>Cancel</Button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isSubmittingReport}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50"
                 >

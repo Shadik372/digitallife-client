@@ -14,14 +14,16 @@ export default function AddLessonPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Cleaned up state: Removed price and isForSale!
+  // 1. STATE UPDATE: Added isForSale and price back in
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     category: "Personal Growth",
     emotionalTone: "Motivational",
     accessLevel: "Free",
-    visibility: "Public"
+    visibility: "Public",
+    isForSale: false,
+    price: ""
   });
   const [imageFile, setImageFile] = useState(null);
 
@@ -55,9 +57,10 @@ export default function AddLessonPage() {
     }
 
     try {
-      // Cleaned up payload
+      // 2. PAYLOAD UPDATE: Ensure price is formatted correctly
       const payload = {
         ...formData,
+        price: formData.isForSale ? Number(formData.price) : 0,
         image: imageUrl
       };
 
@@ -167,13 +170,62 @@ export default function AddLessonPage() {
                 disabled={!canCreatePremium}
                 className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text] disabled:opacity-50 disabled:cursor-not-allowed"
                 value={formData.accessLevel}
-                onChange={(e) => setFormData({...formData, accessLevel: e.target.value})}
+                onChange={(e) => {
+                  const newLevel = e.target.value;
+                  setFormData({
+                    ...formData, 
+                    accessLevel: newLevel,
+                    // Auto-reset sale status if they switch back to Free
+                    isForSale: newLevel === "Free" ? false : formData.isForSale 
+                  });
+                }}
               >
                 <option value="Free">Free</option>
                 <option value="Premium">Premium</option>
               </select>
             </div>
           </div>
+
+          {/* 3. UI UPDATE: HYBRID MODEL PRICING (Only shows for Premium) */}
+          {formData.accessLevel === "Premium" && (
+            <div className="mt-4 p-5 border border-[--border] bg-[--bg-secondary]/50 rounded-xl space-y-4 transition-all">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h4 className="font-bold text-[--text]">Sell Individually?</h4>
+                  <p className="text-sm text-[--text-muted]">Allow non-premium users to buy this specific lesson.</p>
+                </div>
+                
+                {/* 🔧 FIXED: Visible Toggle Switch */}
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={formData.isForSale}
+                    onChange={(e) => setFormData({ ...formData, isForSale: e.target.checked })}
+                  />
+                  <div className="w-11 h-6 bg-gray-300 dark:bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[--accent]"></div>
+                </label>
+              </div>
+
+              {formData.isForSale && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <label className="block text-sm font-bold text-[--text] mb-1">Set Price (Max ৳50)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[--text-muted] font-bold">৳</span>
+                    <input 
+                      type="number" 
+                      min="1"
+                      max="50"
+                      required
+                      className="w-full pl-8 pr-4 py-3 bg-[--bg] border border-[--border] rounded-xl focus:outline-none focus:border-[--accent] text-[--text]"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Image Upload */}
           <div>

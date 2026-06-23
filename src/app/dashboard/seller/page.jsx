@@ -15,12 +15,14 @@ export default function SellerDashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/sellers/stats`, {
+        // 🚀 POINTING TO OUR NEW LIVE-COUNTING BACKEND ROUTE
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/purchases/my-sales`, {
           withCredentials: true
         });
+        
         if (res.data.success) {
-          setStats(res.data.stats);
-          setRecentSales(res.data.recentSales);
+          setStats(res.data.stats); // Grabs our dynamic { totalSales, totalEarnings }
+          setRecentSales(res.data.sales); // Grabs the list of transactions
         }
       } catch (error) {
         console.error("Failed to load seller stats");
@@ -35,50 +37,82 @@ export default function SellerDashboardPage() {
 
   return (
     <SellerRoute>
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         <Heading level={2}>Seller Dashboard</Heading>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="p-6 bg-[--accent] text-white">
-            <p className="text-white/80 font-medium">Total Earnings</p>
-            <p className="text-4xl font-bold mt-2">৳{stats.totalEarnings.toLocaleString()}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <Card className="p-5 sm:p-6 bg-[--accent] text-white shadow-md">
+            <p className="text-white/80 font-medium text-sm sm:text-base uppercase tracking-wider">Total Earnings</p>
+            <p className="text-3xl sm:text-4xl font-black mt-2 break-all">৳{stats.totalEarnings.toLocaleString()}</p>
           </Card>
-          <Card className="p-6">
-            <p className="text-[--text-muted] font-medium">Total Sales</p>
-            <p className="text-4xl font-bold mt-2 text-[--text]">{stats.totalSales}</p>
+          <Card className="p-5 sm:p-6 border border-[--border] shadow-sm">
+            <p className="text-[--text-muted] font-medium text-sm sm:text-base uppercase tracking-wider">Total Sales</p>
+            <p className="text-3xl sm:text-4xl font-black mt-2 text-[--text]">{stats.totalSales}</p>
           </Card>
         </div>
 
-        {/* Recent Sales Table */}
+        {/* Recent Sales */}
         <Heading level={3}>Recent Transactions</Heading>
-        <Card className="overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-[--bg-secondary]">
-              <tr className="text-sm text-[--text-muted] uppercase">
-                <th className="p-4">Buyer</th>
-                <th className="p-4">Lesson</th>
-                <th className="p-4 text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentSales.length > 0 ? (
-                recentSales.map((sale) => (
-                  <tr key={sale._id} className="border-t border-[--border]">
-                    <td className="p-4">{sale.buyerId?.name || "Deleted User"}</td>
-                    <td className="p-4">{sale.lessonId?.title || "Deleted Lesson"}</td>
-                    <td className="p-4 text-right font-semibold text-green-600">৳{sale.amount}</td>
+
+        {recentSales.length > 0 ? (
+          <>
+            {/* Mobile: stacked cards */}
+            <Card className="md:hidden overflow-hidden divide-y divide-[--border] border border-[--border]">
+              {recentSales.map((sale) => (
+                <div key={sale._id} className="p-4 flex flex-col gap-1 bg-[--bg-secondary]/50 hover:bg-[--bg-secondary] transition-colors">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="font-bold text-[--text] truncate">
+                      {sale.buyerId?.name || "Deleted User"}
+                    </span>
+                    <span className="font-black text-green-500 shrink-0">
+                      ৳{sale.amount}
+                    </span>
+                  </div>
+                  <p className="text-sm text-[--text-muted] truncate font-medium">
+                    {sale.lessonId?.title || "Deleted Lesson"}
+                  </p>
+                  <p className="text-xs text-[--text-muted]/60 mt-1">
+                    {new Date(sale.purchasedAt || sale.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </Card>
+
+            {/* Desktop / tablet: table */}
+            <Card className="hidden md:block overflow-x-auto border border-[--border]">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-[--bg-secondary] border-b border-[--border]">
+                  <tr className="text-xs font-bold text-[--text-muted] uppercase tracking-wider">
+                    <th className="p-4">Buyer</th>
+                    <th className="p-4">Lesson</th>
+                    <th className="p-4">Date</th>
+                    <th className="p-4 text-right">Amount</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="3" className="p-8 text-center text-[--text-muted]">No sales recorded yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </Card>
+                </thead>
+                <tbody className="divide-y divide-[--border]">
+                  {recentSales.map((sale) => (
+                    <tr key={sale._id} className="hover:bg-[--bg-secondary]/50 transition-colors">
+                      <td className="p-4 font-bold text-[--text]">{sale.buyerId?.name || "Deleted User"}</td>
+                      <td className="p-4 text-[--text-muted] font-medium">{sale.lessonId?.title || "Deleted Lesson"}</td>
+                      <td className="p-4 text-sm text-[--text-muted]">
+                        {new Date(sale.purchasedAt || sale.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="p-4 text-right font-black text-green-500">৳{sale.amount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Card>
+          </>
+        ) : (
+          <Card className="p-12 text-center text-[--text-muted] border-dashed border-2 border-[--border]">
+            <span className="text-4xl block mb-3 opacity-50">💸</span>
+            <p className="font-medium">No sales recorded yet.</p>
+            <p className="text-sm mt-1">When someone buys your premium lessons, they will appear here!</p>
+          </Card>
+        )}
       </div>
     </SellerRoute>
   );
-}   
+}
