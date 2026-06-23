@@ -44,7 +44,7 @@ export default function LoginPage() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard"
+        callbackURL: "https://digitallife-client.vercel.app/dashboard"
       });
     } catch (err) {
       toast.error("Google login failed.");
