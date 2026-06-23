@@ -156,25 +156,27 @@ export default function LessonDetailsPage() {
         {/* Main Content Area */}
         <Card className="relative p-10 md:p-14 overflow-hidden border border-(--border)">
           
-          {/* THE PAYWALL OVERLAY */}
+          {/* THE PAYWALL OVERLAY - Teaser Style */}
           {isPremiumLocked && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gradient-to-t from-(--bg) via-(--bg)/90 to-transparent backdrop-blur-[2px] p-8 text-center pt-32">
-              <div className="bg-amber-500/10 p-4 rounded-full mb-4 border border-amber-500/20 shadow-lg">
+            <div className="absolute inset-x-0 bottom-0 h-3/4 z-10 flex flex-col items-center justify-end bg-gradient-to-t from-(--bg) via-(--bg) to-transparent pb-16 px-8 text-center">
+              <div className="bg-amber-500/10 p-4 rounded-full mb-4 border border-amber-500/20 shadow-lg mt-auto">
                 <span className="text-5xl">👑</span>
               </div>
               <Heading level={3} className="mb-2 text-(--text)">Premium Wisdom Locked</Heading>
-              <p className="text-(--text-muted) mb-6 max-w-md font-medium">
-                This lesson is exclusive to Premium members. Upgrade once for lifetime access to every locked lesson on the platform.
+              <p className="text-(--text-muted) mb-6 max-w-md font-medium text-shadow-sm">
+                Keep reading this story and unlock hundreds of other exclusive lessons by upgrading to Premium.
               </p>
               <Button onClick={() => router.push("/pricing")} variant="primary" size="lg" className="shadow-xl shadow-amber-500/20 flex items-center gap-2">
-                ⭐ Upgrade to Premium
+                ⭐ Upgrade for Lifetime Access
               </Button>
             </div>
           )}
 
-          {/* Lesson Text (Blurred if locked) */}
-          <div className={`prose prose-lg dark:prose-invert max-w-none text-(--text) leading-8 whitespace-pre-wrap ${isPremiumLocked ? "max-h-[300px] overflow-hidden select-none opacity-40 blur-[1px]" : ""}`}>
-            {lesson.description}
+          {/* Lesson Text (Teaser if locked) */}
+          <div className={`prose prose-lg dark:prose-invert max-w-none text-(--text) leading-8 whitespace-pre-wrap ${isPremiumLocked ? "max-h-[400px] overflow-hidden select-none" : ""}`}>
+            {isPremiumLocked && lesson.description.length > 400 
+              ? lesson.description.slice(0, 400) + "..." 
+              : lesson.description}
           </div>
         </Card>
 

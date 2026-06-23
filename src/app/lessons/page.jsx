@@ -95,7 +95,7 @@ export default function PublicLessonsPage() {
       <div className="text-center max-w-2xl mx-auto space-y-4">
         <Heading level={1}>Explore Public Wisdom</Heading>
         <p className="text-[--text-muted]">
-          Browse meaningful life lessons shared by our community. Upgrade to Premium to unlock exclusive insights, or purchase individual lessons directly from sellers.
+          Browse meaningful life lessons shared by our community. Upgrade to Premium once to unlock lifetime access to all exclusive insights.
         </p>
       </div>
 

@@ -14,7 +14,7 @@ export default function MyLessonsPage() {
   const { data: session } = authClient.useSession();
   const [lessons, setLessons] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [deleteId, setDeleteId] = useState(null); // State for confirmation modal
+  const [deleteId, setDeleteId] = useState(null); 
 
   useEffect(() => {
     fetchMyLessons();
@@ -67,7 +67,8 @@ export default function MyLessonsPage() {
 
   if (isLoading || !session) return <Loading fullScreen />;
 
-  const isPremium = session.user.isPremium;
+  // THE FIX: Check for Seller or Admin role, not just Premium status!
+  const canCreatePremium = session.user.role === "seller" || session.user.role === "admin";
 
   return (
     <div className="space-y-6 relative">
@@ -101,7 +102,6 @@ export default function MyLessonsPage() {
                         <span>📅 {new Date(lesson.createdAt).toLocaleDateString()}</span>
                         <span>❤️ {lesson.likesCount}</span>
                         <span>🔖 {lesson.savesCount}</span>
-                        {lesson.isForSale && <span className="text-green-600 font-bold">🏷️ ৳{lesson.price}</span>}
                       </div>
                     </td>
 
@@ -119,15 +119,22 @@ export default function MyLessonsPage() {
 
                     {/* Access Level Toggle */}
                     <td className="p-4">
-                      <select 
-                        disabled={!isPremium}
-                        value={lesson.accessLevel}
-                        onChange={(e) => handleQuickUpdate(lesson._id, "accessLevel", e.target.value)}
-                        className="px-2 py-1 bg-[--bg] border border-[--border] rounded text-sm focus:outline-none focus:border-[--accent] disabled:opacity-50"
-                      >
-                        <option value="Free">Free</option>
-                        <option value="Premium">Premium</option>
-                      </select>
+                      <div className="relative flex flex-col gap-1 items-start">
+                        <select 
+                          disabled={!canCreatePremium}
+                          value={lesson.accessLevel}
+                          onChange={(e) => handleQuickUpdate(lesson._id, "accessLevel", e.target.value)}
+                          className="px-2 py-1 bg-[--bg] border border-[--border] rounded text-sm focus:outline-none focus:border-[--accent] disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="Free">Free</option>
+                          <option value="Premium">Premium</option>
+                        </select>
+                        {!canCreatePremium && (
+                          <span className="text-[10px] text-blue-500 font-medium tracking-wide uppercase">
+                            Sellers Only
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Actions */}
@@ -147,7 +154,7 @@ export default function MyLessonsPage() {
               ) : (
                 <tr>
                   <td colSpan="4" className="p-8 text-center text-[--text-muted]">
-                    You haven't created any lessons yet.
+                    You haven't created any lessons yet. Start sharing your wisdom!
                   </td>
                 </tr>
               )}

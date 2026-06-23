@@ -26,7 +26,6 @@ export default function MyFavoritesPage() {
 
   const fetchFavorites = async () => {
     try {
-      // BetterAuth handles auth cookies automatically
       const res = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/favorites`, {
         withCredentials: true 
       });
@@ -48,7 +47,6 @@ export default function MyFavoritesPage() {
       );
       if (res.data.success) {
         toast.success("Removed from favorites");
-        // Remove from UI immediately
         setFavorites(favorites.filter(fav => fav.lessonId._id !== lessonId));
       }
     } catch (error) {
@@ -56,10 +54,9 @@ export default function MyFavoritesPage() {
     }
   };
 
-  // Apply filters
   const filteredFavorites = favorites.filter(fav => {
     const lesson = fav.lessonId;
-    if (!lesson) return false; // Guard against deleted lessons
+    if (!lesson) return false; 
     const matchCategory = categoryFilter === "All" || lesson.category === categoryFilter;
     const matchTone = toneFilter === "All" || lesson.emotionalTone === toneFilter;
     return matchCategory && matchTone;
@@ -71,6 +68,7 @@ export default function MyFavoritesPage() {
     <div className="space-y-6">
       <Heading level={2}>My Favorites</Heading>
       
+      {/* Filters Toolbar */}
       <div className="bg-[--bg-secondary] p-4 rounded-xl border border-[--border] flex gap-4 items-center">
         <span className="text-sm font-medium text-[--text-muted]">Filters:</span>
         <select
@@ -90,54 +88,65 @@ export default function MyFavoritesPage() {
         </select>
       </div>
 
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[--bg-secondary] border-b border-[--border] text-[--text-muted] text-sm uppercase tracking-wider">
-                <th className="p-4 font-medium">Lesson Title</th>
-                <th className="p-4 font-medium">Category</th>
-                <th className="p-4 font-medium">Tone</th>
-                <th className="p-4 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredFavorites.length > 0 ? (
-                filteredFavorites.map((fav) => (
-                  <tr key={fav._id} className="border-b border-[--border] hover:bg-[--bg-secondary] transition-colors">
+      <Card className="overflow-hidden border border-[--border]">
+        {filteredFavorites.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[--bg-secondary] border-b border-[--border] text-[--text-muted] text-sm uppercase tracking-wider">
+                  <th className="p-4 font-medium">Lesson Title</th>
+                  <th className="p-4 font-medium">Category</th>
+                  <th className="p-4 font-medium">Tone</th>
+                  <th className="p-4 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredFavorites.map((fav) => (
+                  <tr key={fav._id} className="border-b border-[--border] hover:bg-[--bg-secondary]/50 transition-colors">
                     <td className="p-4 font-medium text-[--text]">
                       {fav.lessonId?.title || "Unknown Lesson"}
                     </td>
                     <td className="p-4">
-                      <span className="text-xs bg-[--accent]/10 text-[--accent] px-2 py-1 rounded">
+                      <span className="text-xs bg-[--accent]/10 text-[--accent] px-2 py-1 rounded font-semibold tracking-wide">
                         {fav.lessonId?.category}
                       </span>
                     </td>
                     <td className="p-4">
-                      <span className="text-xs bg-[--border] text-[--text-muted] px-2 py-1 rounded">
+                      <span className="text-xs bg-[--border] text-[--text-muted] px-2 py-1 rounded font-semibold tracking-wide">
                         {fav.lessonId?.emotionalTone}
                       </span>
                     </td>
                     <td className="p-4 text-right space-x-2">
                       <Link href={`/lessons/${fav.lessonId?._id}`}>
-                        <Button variant="secondary" size="sm">Details</Button>
+                        <Button variant="secondary" size="sm">Read</Button>
                       </Link>
-                      <Button variant="danger" size="sm" onClick={() => handleRemove(fav.lessonId?._id)}>
+                      <button 
+                        onClick={() => handleRemove(fav.lessonId?._id)}
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium text-red-500 bg-red-500/10 hover:bg-red-500/20 transition-colors"
+                      >
                         Remove
-                      </Button>
+                      </button>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" className="p-8 text-center text-[--text-muted]">
-                    No favorites found. Start exploring and save some wisdom!
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          /* ✨ THE NEW EMPTY STATE CTA ✨ */
+          <div className="p-16 flex flex-col items-center justify-center text-center">
+            <div className="text-6xl mb-4 opacity-80">🔖</div>
+            <Heading level={3}>Your library is empty</Heading>
+            <p className="text-[--text-muted] mt-2 mb-6 max-w-sm">
+              You haven't saved any lessons yet. Start exploring the marketplace and bookmark the wisdom that resonates with you!
+            </p>
+            <Link href="/lessons">
+              <Button variant="primary" size="lg">
+                Explore Lessons
+              </Button>
+            </Link>
+          </div>
+        )}
       </Card>
     </div>
   );

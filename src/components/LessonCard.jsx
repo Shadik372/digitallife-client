@@ -73,12 +73,6 @@ export default function LessonCard({ lesson, currentUser }) {
             </span>
           )}
 
-          {lesson.isForSale && (
-            <span className="px-3 py-1.5 text-xs font-bold uppercase tracking-wide bg-(--text) text-(--bg) border-r-2 border-b-2 border-(--border)">
-              ৳{lesson.price}
-            </span>
-          )}
-
         </div>
 
       </div>
