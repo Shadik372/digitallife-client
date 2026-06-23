@@ -40,6 +40,7 @@ export default function LoginPage() {
     }
   };
 
+  // checking if the user is already logged in and redirecting to dashboard
   const handleGoogleLogin = async () => {
     try {
       await authClient.signIn.social({
