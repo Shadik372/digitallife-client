@@ -19,10 +19,15 @@ export default function RegisterPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Live tracking booleans
+  const hasLength = formData.password.length >= 6;
+  const hasUpper = /[A-Z]/.test(formData.password);
+  const hasLower = /[a-z]/.test(formData.password);
+
   const validatePassword = (password) => {
-    if (password.length < 6) return "Password must be at least 6 characters.";
-    if (!/[A-Z]/.test(password)) return "Password must contain an uppercase letter.";
-    if (!/[a-z]/.test(password)) return "Password must contain a lowercase letter.";
+    if (!hasLength) return "Password must be at least 6 characters.";
+    if (!hasUpper) return "Password must contain an uppercase letter.";
+    if (!hasLower) return "Password must contain a lowercase letter.";
     return null;
   };
 
@@ -116,10 +121,22 @@ export default function RegisterPage() {
               value={formData.password}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
             />
-            <p className="text-xs text-[--text-muted] mt-1">Must contain 1 uppercase, 1 lowercase, and be 6+ chars.</p>
+            
+            {/* Live Password Tracker */}
+            <div className="mt-3 space-y-1.5 p-3 bg-[--bg] border border-[--border] rounded-lg">
+              <p className={`text-xs flex items-center gap-2 transition-colors ${hasUpper ? "text-green-500 font-medium" : "text-[--text-muted]"}`}>
+                <span>{hasUpper ? "✅" : "⭕"}</span> One uppercase letter
+              </p>
+              <p className={`text-xs flex items-center gap-2 transition-colors ${hasLower ? "text-green-500 font-medium" : "text-[--text-muted]"}`}>
+                <span>{hasLower ? "✅" : "⭕"}</span> One lowercase letter
+              </p>
+              <p className={`text-xs flex items-center gap-2 transition-colors ${hasLength ? "text-green-500 font-medium" : "text-[--text-muted]"}`}>
+                <span>{hasLength ? "✅" : "⭕"}</span> At least 6 characters
+              </p>
+            </div>
           </div>
 
-          <Button type="submit" variant="primary" className="w-full" disabled={isLoading}>
+          <Button type="submit" variant="primary" className="w-full mt-2" disabled={isLoading}>
             {isLoading ? "Registering..." : "Register"}
           </Button>
         </form>
