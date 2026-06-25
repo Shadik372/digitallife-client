@@ -91,30 +91,30 @@ export default function AddLessonPage() {
 
       <Card className="p-6 md:p-8 border border-[--border]">
         <form onSubmit={handleSubmit} className="space-y-6">
-          
+
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-[--text-muted] mb-1">Lesson Title</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               required
               placeholder="E.g., The hardest lesson I learned in my 20s"
               className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text] transition-colors"
               value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             />
           </div>
 
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-[--text-muted] mb-1">Full Description / Story</label>
-            <textarea 
+            <textarea
               required
               rows="8"
               placeholder="Share the full insight here..."
               className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text] resize-y transition-colors"
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
 
@@ -122,21 +122,21 @@ export default function AddLessonPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-[--text-muted] mb-1">Category</label>
-              <select 
+              <select
                 className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text]"
                 value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               >
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-[--text-muted] mb-1">Emotional Tone</label>
-              <select 
+              <select
                 className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text]"
                 value={formData.emotionalTone}
-                onChange={(e) => setFormData({...formData, emotionalTone: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, emotionalTone: e.target.value })}
               >
                 {tones.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -147,36 +147,36 @@ export default function AddLessonPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[--border]">
             <div>
               <label className="block text-sm font-medium text-[--text-muted] mb-1">Visibility</label>
-              <select 
+              <select
                 className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text]"
                 value={formData.visibility}
-                onChange={(e) => setFormData({...formData, visibility: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
               >
                 <option value="Public">Public (Visible to others)</option>
                 <option value="Private">Private (Only you)</option>
               </select>
             </div>
-            
+
             <div className="relative group">
               <label className="block text-sm font-medium text-[--text-muted] mb-1 flex items-center gap-2">
-                Access Level 
+                Access Level
                 {!canCreatePremium && (
                   <span className="text-xs bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded border border-blue-500/20">
                     Sellers Only
                   </span>
                 )}
               </label>
-              <select 
+              <select
                 disabled={!canCreatePremium}
                 className="w-full px-4 py-2 bg-[--bg-secondary] border border-[--border] rounded-md focus:outline-none focus:border-[--accent] text-[--text] disabled:opacity-50 disabled:cursor-not-allowed"
                 value={formData.accessLevel}
                 onChange={(e) => {
                   const newLevel = e.target.value;
                   setFormData({
-                    ...formData, 
+                    ...formData,
                     accessLevel: newLevel,
                     // Auto-reset sale status if they switch back to Free
-                    isForSale: newLevel === "Free" ? false : formData.isForSale 
+                    isForSale: newLevel === "Free" ? false : formData.isForSale
                   });
                 }}
               >
@@ -194,11 +194,11 @@ export default function AddLessonPage() {
                   <h4 className="font-bold text-[--text]">Sell Individually?</h4>
                   <p className="text-sm text-[--text-muted]">Allow non-premium users to buy this specific lesson.</p>
                 </div>
-                
+
                 {/* 🔧 FIXED: Visible Toggle Switch */}
                 <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="sr-only peer"
                     checked={formData.isForSale}
                     onChange={(e) => setFormData({ ...formData, isForSale: e.target.checked })}
@@ -209,13 +209,13 @@ export default function AddLessonPage() {
 
               {formData.isForSale && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label className="block text-sm font-bold text-[--text] mb-1">Set Price (Max ৳50)</label>
+                  <label className="block text-sm font-bold text-[--text] mb-1">Set Price (Min ৳100)</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[--text-muted] font-bold">৳</span>
-                    <input 
-                      type="number" 
-                      min="1"
-                      max="50"
+                    <input
+                      type="number"
+                      min="100" // 👈 Changed from 1 to 100 (Safe for Stripe)
+                      max="5000" // 👈 Let sellers charge up to 5000 BDT!
                       required
                       className="w-full pl-8 pr-4 py-3 bg-[--bg] border border-[--border] rounded-xl focus:outline-none focus:border-[--accent] text-[--text]"
                       value={formData.price}
@@ -230,8 +230,8 @@ export default function AddLessonPage() {
           {/* Image Upload */}
           <div>
             <label className="block text-sm font-medium text-[--text-muted] mb-1">Featured Image (Optional)</label>
-            <input 
-              type="file" 
+            <input
+              type="file"
               accept="image/*"
               onChange={(e) => setImageFile(e.target.files[0])}
               className="block w-full text-sm text-[--text-muted] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[--accent]/10 file:text-[--accent] hover:file:bg-[--accent]/20 transition-colors cursor-pointer"

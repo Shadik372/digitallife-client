@@ -23,40 +23,38 @@ export default function LessonDetailsPage() {
   const [newComment, setNewComment] = useState("");
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [hasPurchased, setHasPurchased] = useState(false); // 👈 Added Purchase State
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🚩 Report State
+  // Report State
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
-  // Random static views as requested
-  const views = lesson?.likesCount
-    ? lesson.likesCount * 17 + 100
-    : 100;
+  const views = lesson?.likesCount ? lesson.likesCount * 17 + 100 : 100;
 
-useEffect(() => {
+  useEffect(() => {
     if (!session) return;
 
     const fetchLessonData = async () => {
       setIsLoading(true);
       try {
-        // 1. Fetch the Lesson (Critical)
+        // 1. Fetch the Lesson
         const lessonRes = await api.get(`/api/lessons/${params.id}`);
         if (lessonRes.data.success) {
           setLesson(lessonRes.data.lesson);
           setIsLiked(lessonRes.data.lesson.likes.includes(session.user.id));
         }
 
-        // 2. Fetch Comments (Non-critical - wrap in its own try/catch)
+        // 2. Fetch Comments
         try {
           const commentsRes = await api.get(`/api/comments/${params.id}`);
           if (commentsRes.data.success) setComments(commentsRes.data.comments);
         } catch (e) {
-          console.warn("Comments failed to load, continuing...");
+          console.warn("Comments failed to load.");
         }
 
-        // 3. Fetch Favorites (Non-critical)
+        // 3. Fetch Favorites
         try {
           const favRes = await api.get(`/api/favorites`);
           if (favRes.data.success) {
@@ -64,11 +62,20 @@ useEffect(() => {
             setIsSaved(saved);
           }
         } catch (e) {
-          console.warn("Favorites failed to load, continuing...");
+          console.warn("Favorites failed to load.");
+        }
+
+        // 4. Fetch Purchase Status (Did they buy this specific lesson?)
+        try {
+          const purchaseRes = await api.get(`/api/purchases/check/${params.id}`);
+          if (purchaseRes.data.success) {
+            setHasPurchased(purchaseRes.data.hasPurchased);
+          }
+        } catch (e) {
+          console.warn("Purchase check failed or user not logged in.");
         }
 
       } catch (error) {
-        console.error("Critical error loading lesson:", error);
         toast.error("Failed to load lesson details.");
         router.push("/lessons");
       } finally {
@@ -126,7 +133,6 @@ useEffect(() => {
     }
   };
 
-  // 🚩 Report Submission Logic
   const handleReport = async (e) => {
     e.preventDefault();
     if (!reportReason) return toast.error("Please select a reason to report.");
@@ -157,7 +163,9 @@ useEffect(() => {
   // ==========================================
   const isOwner = session?.user?.id === lesson.creatorId?._id;
   const isAdmin = session?.user?.role === "admin";
-  const isPremiumLocked = lesson.accessLevel === "Premium" && !session?.user?.isPremium && !isOwner && !isAdmin;
+  
+  // 👈 If they bought it (!hasPurchased is false), the lock is REMOVED!
+  const isPremiumLocked = lesson.accessLevel === "Premium" && !session?.user?.isPremium && !isOwner && !isAdmin && !hasPurchased;
 
   const readingTime = Math.ceil(lesson.description.split(/\s+/).length / 200);
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
@@ -213,6 +221,7 @@ useEffect(() => {
                   <button
                     onClick={async () => {
                       try {
+                        // Ensure it hits the updated endpoint
                         const res = await api.post("/api/payments/create-lesson-checkout-session", { lessonId: lesson._id });
                         window.location.href = res.data.url;
                       } catch (err) { 
@@ -276,7 +285,7 @@ useEffect(() => {
               {isSaved ? "🔖 Saved" : "📑 Save"} ({lesson.savesCount})
             </Button>
 
-            {/* 🚩 The Report Button */}
+            {/* The Report Button */}
             {!isOwner && !isAdmin && (
               <button
                 onClick={() => setIsReportModalOpen(true)}
@@ -335,9 +344,7 @@ useEffect(() => {
 
       </div>
 
-      {/* ========================================== */}
-      {/* 🚩 REPORT CONFIRMATION MODAL               */}
-      {/* ========================================== */}
+      {/* Report Modal */}
       {isReportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-[--bg] border border-[--border] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
