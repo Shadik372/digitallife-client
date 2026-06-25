@@ -1,19 +1,50 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Card from "./Card";
 import Button from "./Button";
 import RoleBadge from "./RoleBadge";
+import api from "../lib/axios"; // 👈 We need your API instance to check the receipt
 
 export default function LessonCard({ lesson, currentUser }) {
   const isPremiumLesson = lesson.accessLevel === "Premium";
   const isOwner = currentUser?.id === lesson.creatorId?._id;
 
+  // 1. State to track if the current user bought this specific lesson
+  const [hasPurchased, setHasPurchased] = useState(false);
+
+  // 2. Optimized API call: Only check the receipt if they don't already have Global Premium
+  useEffect(() => {
+    const checkPurchase = async () => {
+      if (
+        currentUser && 
+        isPremiumLesson && 
+        !currentUser?.isPremium && 
+        currentUser?.role !== "admin" && 
+        !isOwner
+      ) {
+        try {
+          const res = await api.get(`/api/purchases/check/${lesson._id}`);
+          if (res.data.success) {
+            setHasPurchased(res.data.hasPurchased);
+          }
+        } catch (error) {
+          console.warn("Could not verify purchase status for card", lesson._id);
+        }
+      }
+    };
+
+    checkPurchase();
+  }, [lesson._id, currentUser, isPremiumLesson, isOwner]);
+
+  // 3. 🔓 UPDATED LOGIC: If hasPurchased is true, isLocked becomes FALSE!
   const isLocked =
     isPremiumLesson &&
     !currentUser?.isPremium &&
     currentUser?.role !== "admin" &&
-    !isOwner;
+    !isOwner &&
+    !hasPurchased; 
 
   return (
     <Card className="group relative flex flex-col h-full overflow-hidden rounded-none border-2 border-(--border)">
@@ -43,8 +74,8 @@ export default function LessonCard({ lesson, currentUser }) {
               ✨ Premium
             </span>
           )}
-          {/* Hybrid Marketplace: Show the Price if it's for sale! */}
-          {lesson.isForSale && (
+          {/* Only show the price tag if it is still locked for them! */}
+          {lesson.isForSale && isLocked && (
             <span className="px-3 py-1.5 text-xs font-bold tracking-wide bg-(--text) text-(--bg) border-r-2 border-b-2 border-(--border)">
               ৳{lesson.price}
             </span>
@@ -104,8 +135,8 @@ export default function LessonCard({ lesson, currentUser }) {
             </div>
           </div>
 
-          {/* Fixed Button Routing */}
           <Link href={`/lessons/${lesson._id}`}>
+            {/* 🔄 Button dynamically updates based on purchase status */}
             <Button variant={isLocked ? "primary" : "outline"} size="sm">
               {isLocked ? "Unlock" : "View"}
             </Button>
