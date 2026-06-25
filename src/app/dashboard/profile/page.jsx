@@ -68,27 +68,6 @@ export default function ProfilePage() {
     }
   };
 
-  // 🪄 THE EXAMINER MAGIC BUTTON LOGIC
-  const handleMakeMeAdmin = async () => {
-    if (!window.confirm("This will upgrade your account to Admin for grading purposes. Continue?")) return;
-    
-    try {
-      const res = await axios.patch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/make-me-admin`, {}, {
-        withCredentials: true 
-      });
-      
-      if (res.data.success) {
-        toast.success(res.data.message, { duration: 5000 });
-        // Force sign out to clear the old role cookie, then redirect
-        await authClient.signOut();
-        window.location.href = "/login";
-      }
-    } catch (error) {
-      console.error("Failed to upgrade to admin", error);
-      toast.error("Something went wrong!");
-    }
-  };
-
   if (isPending || isLoading) return <Loading fullScreen />;
 
   // Note: Adjusting this check so Premium users can also create lessons per the rubric
@@ -130,19 +109,6 @@ export default function ProfilePage() {
                 <p className="text-sm text-[--text-muted] font-medium uppercase tracking-wide mt-1">Public Lessons</p>
               </div>
             </div>
-
-            {/* 🪄 THE EXAMINER MAGIC BUTTON UI */}
-            {session.user.role !== "admin" && (
-              <div className="w-full mt-4 border-t border-[--border] pt-6 text-center">
-                <p className="text-xs text-[--text-muted] mb-3 uppercase tracking-widest font-bold">Examiner Tools</p>
-                <button 
-                  onClick={handleMakeMeAdmin}
-                  className="w-full justify-center px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-purple-500/20 border border-purple-500 flex items-center gap-2 hover:-translate-y-0.5"
-                >
-                  <span className="text-lg"></span> Instant Admin Access
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Edit Form */}
