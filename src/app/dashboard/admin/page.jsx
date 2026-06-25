@@ -8,23 +8,27 @@ import Card from "../../../components/Card";
 import Loading from "../../../components/Loading";
 import Link from "next/link";
 import Button from "../../../components/Button";
+import toast from "react-hot-toast";
 
 export default function AdminDashboardPage() {
   const { data: session } = authClient.useSession();
   const [stats, setStats] = useState(null);
+  const [lessons, setLessons] = useState([]); // 👈 State to hold all lessons
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchAdminStats = async () => {
+    const fetchAdminData = async () => {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/stats`, {
-          withCredentials: true
-        });
+        // Fetch BOTH stats and lessons in parallel
+        const [statsRes, lessonsRes] = await Promise.all([
+          axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/stats`, { withCredentials: true }),
+          axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/lessons/admin/all`, { withCredentials: true })
+        ]);
         
-        if (res.data.success) {
-          setStats(res.data.stats);
-        }
+        if (statsRes.data.success) setStats(statsRes.data.stats);
+        if (lessonsRes.data.success) setLessons(lessonsRes.data.lessons);
+        
       } catch (err) {
         console.error("Admin Fetch Error:", err);
         setError("Access Denied. You do not have permission to view this page.");
@@ -34,12 +38,32 @@ export default function AdminDashboardPage() {
     };
 
     if (session?.user?.role === "admin") {
-      fetchAdminStats();
+      fetchAdminData();
     } else if (session) {
       setIsLoading(false);
       setError("Access Denied. You do not have permission to view this page.");
     }
   }, [session]);
+
+  // 🗑️ Handle Admin Deletion
+  const handleDeleteLesson = async (id) => {
+    if (!window.confirm("🚨 Are you sure you want to permanently delete this lesson? This affects the seller and any buyers.")) return;
+
+    try {
+      const res = await axios.delete(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/lessons/${id}`, {
+        withCredentials: true
+      });
+
+      if (res.data.success) {
+        toast.success("Lesson deleted successfully from the platform.");
+        // Instantly remove it from the UI table without refreshing the page
+        setLessons(lessons.filter(lesson => lesson._id !== id));
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to delete lesson.");
+    }
+  };
 
   if (isLoading) return <Loading fullScreen />;
 
@@ -53,7 +77,6 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // Format currency helper
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-BD', {
       style: 'currency',
@@ -63,44 +86,36 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12 pb-16">
+      
+      {/* HEADER */}
       <div className="flex justify-between items-end">
         <div>
           <Heading level={2}>👑 Admin Command Center</Heading>
           <p className="text-[--text-muted] mt-1">Platform overview and statistics.</p>
         </div>
-        
-        {/* We will build this page next! */}
         <Link href="/dashboard/admin/users">
           <Button variant="primary">👥 Manage Users</Button>
         </Link>
       </div>
 
-      {/* Stats Grid */}
+      {/* 📊 STATS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        {/* Total Users */}
         <Card className="p-6 border-t-4 border-t-blue-500">
           <div className="text-3xl mb-2">🌍</div>
           <div className="text-sm font-medium text-[--text-muted] uppercase tracking-wider">Total Users</div>
           <div className="text-4xl font-bold mt-2">{stats?.totalUsers || 0}</div>
         </Card>
-
-        {/* Premium Users */}
         <Card className="p-6 border-t-4 border-t-amber-500">
           <div className="text-3xl mb-2">⭐</div>
           <div className="text-sm font-medium text-[--text-muted] uppercase tracking-wider">Premium Members</div>
           <div className="text-4xl font-bold mt-2">{stats?.premiumUsers || 0}</div>
         </Card>
-
-        {/* Total Lessons */}
         <Card className="p-6 border-t-4 border-t-emerald-500">
           <div className="text-3xl mb-2">📚</div>
           <div className="text-sm font-medium text-[--text-muted] uppercase tracking-wider">Total Lessons</div>
           <div className="text-4xl font-bold mt-2">{stats?.totalLessons || 0}</div>
         </Card>
-
-        {/* Total Purchases */}
         <Card className="p-6 border-t-4 border-t-purple-500">
           <div className="text-3xl mb-2">🛒</div>
           <div className="text-sm font-medium text-[--text-muted] uppercase tracking-wider">Market Purchases</div>
@@ -108,12 +123,10 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      {/* Revenue Section */}
+      {/* 💰 REVENUE SECTION */}
       <Card className="p-8 bg-gradient-to-br from-[--bg-secondary] to-[--bg] border border-[--border]">
         <div className="flex items-center gap-4">
-          <div className="p-4 bg-green-500/10 text-green-500 rounded-2xl text-4xl">
-            💰
-          </div>
+          <div className="p-4 bg-green-500/10 text-green-500 rounded-2xl text-4xl">💰</div>
           <div>
             <h3 className="text-lg font-medium text-[--text-muted]">Total Platform Revenue</h3>
             <div className="text-5xl font-black text-[--text] mt-1">
@@ -122,6 +135,88 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </Card>
+
+      {/* 🛡️ ALL PLATFORM LESSONS (MODERATION TABLE) */}
+      <div className="space-y-4">
+        <Heading level={3}>Content Moderation (All Lessons)</Heading>
+        
+        <Card className="overflow-x-auto border border-[--border]">
+          <table className="w-full text-left border-collapse min-w-[700px]">
+            <thead className="bg-[--bg-secondary] border-b border-[--border]">
+              <tr className="text-xs font-bold text-[--text-muted] uppercase tracking-wider">
+                <th className="p-4">Title</th>
+                <th className="p-4">Creator</th>
+                <th className="p-4">Access / Price</th>
+                <th className="p-4">Date Created</th>
+                <th className="p-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[--border]">
+              {lessons.map((lesson) => (
+                <tr key={lesson._id} className="hover:bg-[--bg-secondary]/50 transition-colors">
+                  
+                  {/* Title & Category */}
+                  <td className="p-4">
+                    <p className="font-bold text-[--text] line-clamp-1">{lesson.title}</p>
+                    <p className="text-xs text-[--text-muted] mt-0.5">{lesson.category}</p>
+                  </td>
+
+                  {/* Creator */}
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <img 
+                        src={lesson.creatorId?.photoURL || `https://ui-avatars.com/api/?name=${lesson.creatorId?.name}&background=random`} 
+                        alt="Creator" 
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                      <span className="text-sm font-medium text-[--text]">{lesson.creatorId?.name || "Unknown"}</span>
+                    </div>
+                  </td>
+
+                  {/* Access Level */}
+                  <td className="p-4">
+                    {lesson.accessLevel === "Premium" ? (
+                      <div>
+                        <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 rounded">Premium</span>
+                        {lesson.isForSale && <span className="block text-xs font-bold text-green-500 mt-1">৳{lesson.price}</span>}
+                      </div>
+                    ) : (
+                      <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-green-500/10 text-green-500 rounded">Free</span>
+                    )}
+                  </td>
+
+                  {/* Date */}
+                  <td className="p-4 text-sm text-[--text-muted]">
+                    {new Date(lesson.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </td>
+
+                  {/* Actions (View & Delete) */}
+                  <td className="p-4 flex items-center justify-end gap-2">
+                    <Link href={`/lessons/${lesson._id}`} target="_blank">
+                      <Button variant="outline" size="sm" className="!px-3 !py-1 text-xs">View</Button>
+                    </Link>
+                    <button 
+                      onClick={() => handleDeleteLesson(lesson._id)}
+                      className="px-3 py-1 text-xs font-bold bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </td>
+
+                </tr>
+              ))}
+              
+              {lessons.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="p-10 text-center text-[--text-muted] italic">
+                    No lessons found on the platform.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </Card>
+      </div>
 
     </div>
   );
