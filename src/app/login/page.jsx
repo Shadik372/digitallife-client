@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { authClient } from "../../lib/auth-client";
@@ -10,7 +9,6 @@ import Heading from "../../components/Heading";
 import Card from "../../components/Card";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -31,7 +29,7 @@ export default function LoginPage() {
         toast.error(error.message || "Invalid credentials. Please try again.");
       } else {
         toast.success("Welcome back!");
-        router.push("/dashboard");
+        window.location.href = "/dashboard";
       }
     } catch (err) {
       toast.error("An unexpected error occurred.");
@@ -40,7 +38,6 @@ export default function LoginPage() {
     }
   };
 
-  // checking if the user is already logged in and redirecting to dashboard
   const handleGoogleLogin = async () => {
     try {
       await authClient.signIn.social({
