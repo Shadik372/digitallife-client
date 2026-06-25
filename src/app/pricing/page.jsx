@@ -25,7 +25,7 @@ export default function PricingPage() {
 
     try {
       // Call the Express backend to create a Stripe Checkout Session
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/payment/create-checkout-session`, {}, {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/payments/create-checkout-session`, {}, {
         withCredentials: true // Ensures BetterAuth session cookies are sent
       });
 
