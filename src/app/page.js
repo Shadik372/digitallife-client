@@ -16,22 +16,33 @@ export default function HomePage() {
   const [mostSavedLessons, setMostSavedLessons] = useState([]);
   const [topContributors, setTopContributors] = useState([]);
 
-  useEffect(() => {
+useEffect(() => {
     const fetchHomeData = async () => {
+      // 1. Fetch Featured Lessons Independently
       try {
-        const [featRes, savedRes, usersRes] = await Promise.all([
-          axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/lessons/home/featured`),
-          axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/lessons/home/most-saved`),
-          axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/home/top-contributors`)
-        ]);
-
+        const featRes = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/lessons/home/featured`);
         if (featRes.data.success) setFeaturedLessons(featRes.data.lessons);
+      } catch (error) {
+        console.warn("Failed to fetch featured lessons.");
+      }
+
+      // 2. Fetch Most Saved Lessons Independently
+      try {
+        const savedRes = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/lessons/home/most-saved`);
         if (savedRes.data.success) setMostSavedLessons(savedRes.data.lessons);
+      } catch (error) {
+        console.warn("Failed to fetch most saved lessons.");
+      }
+
+      // 3. Fetch Top Contributors Independently
+      try {
+        const usersRes = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/home/top-contributors`);
         if (usersRes.data.success) setTopContributors(usersRes.data.users);
       } catch (error) {
-        console.error("Failed to fetch home data", error);
+        console.warn("Failed to fetch top contributors.");
       }
     };
+
     fetchHomeData();
   }, []);
 
