@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 📖 Digital Life Lessons - Client 
 
-## Getting Started
+**Live Website:** [https://digitallife-client.vercel.app/](https://digitallife-client.vercel.app/)
 
-First, run the development server:
+## 🎯 Project Purpose
+[cite_start]Digital Life Lessons is a community-driven platform where users can create, store, and share meaningful life lessons, personal growth insights, and wisdom they have gathered over time[cite: 11]. [cite_start]The platform helps preserve personal wisdom, encourages mindful reflection, and allows users to grow by exploring lessons from the community[cite: 15].
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Key Features
+* [cite_start]**Authentication & Roles:** Secure login via Email/Password and Google using Better Auth[cite: 17]. [cite_start]Features distinct User and Admin roles[cite: 223].
+* [cite_start]**Premium Memberships:** Users can upgrade to a Premium plan via a one-time Stripe checkout to unlock exclusive lessons[cite: 18, 103].
+* [cite_start]**Dynamic Dashboard:** Personalized user dashboards to manage created lessons, view saved favorites, and track engagement stats[cite: 163, 164].
+* [cite_start]**Admin Command Center:** Comprehensive admin tools to manage users, monitor platform revenue, and moderate reported content[cite: 213, 215].
+* [cite_start]**Community Interaction:** Users can like, comment on, and save lessons to a personalized favorites list[cite: 27, 149, 150].
+* [cite_start]**Advanced Filtering:** Search public lessons by title, and filter by category or emotional tone[cite: 26, 276, 277].
+* [cite_start]**Smooth Animations:** Engaging UI interactions powered by Framer Motion[cite: 89].
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📦 NPM Packages Used
+* `react` / `next` (Core Framework)
+* `axios` (Data fetching and API requests)
+* [cite_start]`better-auth` (Authentication handling) [cite: 60]
+* [cite_start]`framer-motion` (Scroll and layout animations) [cite: 89]
+* [cite_start]`react-hot-toast` (Sleek success/error notifications) [cite: 72]
+* [cite_start]`react-share` (Social media sharing functionality) [cite: 154]
+* `lucide-react` / `react-icons` (UI Iconography)
+* `tailwindcss` (Utility-first styling)
